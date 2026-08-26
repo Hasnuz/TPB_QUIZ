@@ -204,6 +204,61 @@ h1,h2{
 }
 
 
+
+/* GUEST DETAILS FORM */
+
+.guest-form{
+  width:min(520px,100%);
+  margin:26px auto 24px;
+  display:grid;
+  gap:12px;
+}
+
+.guest-field{
+  text-align:left;
+}
+
+.guest-field label{
+  display:block;
+  margin:0 0 7px;
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+
+.guest-field input{
+  width:100%;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+  padding:16px 17px;
+  outline:none;
+  font-size:15px;
+  transition:.2s ease;
+}
+
+.guest-field input:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(196,154,90,.08);
+}
+
+.form-error{
+  min-height:18px;
+  margin:4px auto 0;
+  color:#9a3f35;
+  font-size:12px;
+  line-height:1.4;
+}
+
+.save-status{
+  margin-top:14px;
+  color:var(--muted);
+  font-size:11px;
+  letter-spacing:.04em;
+}
+
+
 /* QUIZ */
 
 .quiz{
@@ -571,10 +626,12 @@ h1,h2{
 }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 
 <body>
+  
 
 <div class="app">
   <main class="shell">
@@ -609,22 +666,48 @@ h1,h2{
         </div>
 
         <h1>
-          Discover Your
+          Discover Your<br>
           Scent Family
         </h1>
 
-        <!-- <p>
-          Answer ten simple questions based on your mood, style and personality.
-          At the end, we'll reveal the fragrance family that feels most like you.
-        </p> -->
+        <p>
+          Enter your details, answer 10 quick questions, and discover the fragrance family that best matches you.
+        </p>
 
-        <button class="start-btn" onclick="startQuiz()">
+        <div class="guest-form">
+
+          <div class="guest-field">
+            <label for="clientName">Full Name</label>
+            <input
+              type="text"
+              id="clientName"
+              placeholder="Enter your full name"
+              autocomplete="name"
+            >
+          </div>
+
+          <div class="guest-field">
+            <label for="clientEmail">Email Address</label>
+            <input
+              type="email"
+              id="clientEmail"
+              placeholder="Enter your email address"
+              autocomplete="email"
+              inputmode="email"
+            >
+          </div>
+
+          <div class="form-error" id="formError"></div>
+
+        </div>
+
+        <button class="start-btn" onclick="validateGuestAndStart()">
           BEGIN DISCOVERY
         </button>
 
-        <!-- <p class="small-note">
-          There are no right or wrong answers · Trust your instinct
-        </p> -->
+        <p class="small-note">
+          Your details will be used to save your fragrance result.
+        </p>
 
       </div>
 
@@ -672,9 +755,11 @@ h1,h2{
 
        
 
-        <div class="result-family">
-          Your Fragrance Family Is
+        <div class="reveal-mark">
+          <div class="result-icon" id="resultIcon">✦</div>
         </div>
+
+        <div class="result-family" id="resultGreeting">Your Fragrance Family Is</div>
 
         <h2 id="resultName"></h2>
 
@@ -687,6 +772,7 @@ h1,h2{
         <div class="result-traits" id="resultTraits"></div>
 
         <div class="result-hint" id="resultHint"></div>
+        <div class="save-status" id="saveStatus"></div>
 
         <button class="restart-btn" onclick="restartQuiz()">
           DISCOVER ANOTHER SCENT
@@ -705,6 +791,18 @@ h1,h2{
 
 <script>
 
+  const SUPABASE_URL =
+  "https://iocnnpgycqjcmefbdbcj.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_KURJ6J7Uy19UpWK9FsccsQ_nvN9-nCk";
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
 const questions = [
 
   {
@@ -713,7 +811,7 @@ const questions = [
     answers:[
       ["A","Warm, mysterious and luxurious","Woody"],
       ["B","Clean, airy and refreshing","Fresh"],
-      ["C","Soft, intimate and comforting","Floral"],
+      ["C","Soft, romantic and beautifully elegant","Floral"],
       ["D","Bright, lively and energetic","Citrus"]
     ]
   },
@@ -734,7 +832,7 @@ const questions = [
     sub:"Think about how you want people to remember you.",
     answers:[
       ["A","Sophisticated and unforgettable","Woody"],
-      ["B","Soft, sensual and quietly captivating","Floral"],
+      ["B","Graceful, romantic and captivating","Floral"],
       ["C","Elegant, warm and magnetic","Amber"],
       ["D","Fun, vibrant and full of energy","Citrus"]
     ]
@@ -755,9 +853,9 @@ const questions = [
     question:"Choose a texture for your dream scent.",
     sub:"Which one feels closest to your personal style?",
     answers:[
-      ["A","Soft cashmere","Floral"],
-      ["B","Warm satin","Amber"],
-      ["C","Sparkling citrus peel with warm spice","Citrus"],
+      ["A","Delicate petals with a silky softness","Floral"],
+      ["B","Warm golden satin","Amber"],
+      ["C","Sparkling citrus peel","Citrus"],
       ["D","Velvety vanilla cream","Sweet"]
     ]
   },
@@ -779,8 +877,8 @@ const questions = [
     answers:[
       ["A","A luxurious majlis with rich woods","Woody"],
       ["B","A bright garden after the rain","Fresh"],
-      ["C","A quiet room with soft fabrics and warm skin","Floral"],
-      ["D","A glamorous evening surrounded by golden details","Amber"]
+      ["C","A beautiful garden filled with blooming flowers","Floral"],
+      ["D","A sunlit terrace filled with vibrant energy","Citrus"]
     ]
   },
 
@@ -788,10 +886,10 @@ const questions = [
     question:"What kind of opening would make you want to keep smelling a fragrance?",
     sub:"Choose the first impression that excites you most.",
     answers:[
-      ["A","Juicy and sparkling","Citrus"],
-      ["B","Warm and resinous","Amber"],
-      ["C","Creamy and mouth-watering","Sweet"],
-      ["D","Deep and woody","Woody"]
+      ["A","Juicy, sparkling and uplifting","Citrus"],
+      ["B","Warm, golden and resinous","Amber"],
+      ["C","Creamy, sweet and mouth-watering","Sweet"],
+      ["D","Deep, smooth and woody","Woody"]
     ]
   },
 
@@ -799,8 +897,8 @@ const questions = [
     question:"When choosing a signature scent, what matters most?",
     sub:"Select the quality you would want to notice every time you wear it.",
     answers:[
-      ["A","A clean feeling that lasts","Fresh"],
-      ["B","A soft, sensual trail","Floral"],
+      ["A","A clean, refreshing feeling that lasts","Fresh"],
+      ["B","An elegant bouquet that feels timeless","Floral"],
       ["C","A rich and luxurious presence","Amber"],
       ["D","A bold character people remember","Woody"]
     ]
@@ -811,8 +909,8 @@ const questions = [
     sub:"Trust your instinct — this is your final choice.",
     answers:[
       ["A","Playful, delicious and irresistible","Sweet"],
-      ["B","Energetic, sparkling and bold","Citrus"],
-      ["C","Soft, intimate and sensual","Floral"],
+      ["B","Energetic, sparkling and radiant","Citrus"],
+      ["C","Romantic, graceful and beautifully expressive","Floral"],
       ["D","Fresh, bright and effortlessly elegant","Fresh"]
     ]
   }
@@ -886,7 +984,11 @@ const resultDetails = {
 
 let currentQuestion = 0;
 
+let clientName = "";
+let clientEmail = "";
+
 let selectedFamilies = [];
+let selectedAnswers = [];
 
 let scores = {
   "Woody":0,
@@ -896,6 +998,39 @@ let scores = {
   "Sweet":0,
   "Citrus":0
 };
+
+
+
+function validateGuestAndStart(){
+
+  const nameInput = document.getElementById("clientName");
+  const emailInput = document.getElementById("clientEmail");
+  const errorBox = document.getElementById("formError");
+
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim();
+
+  errorBox.textContent = "";
+
+  if(name.length < 2){
+    errorBox.textContent = "Please enter your full name.";
+    nameInput.focus();
+    return;
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if(!emailPattern.test(email)){
+    errorBox.textContent = "Please enter a valid email address.";
+    emailInput.focus();
+    return;
+  }
+
+  clientName = name;
+  clientEmail = email;
+
+  startQuiz();
+}
 
 
 function startQuiz(){
@@ -909,6 +1044,7 @@ function startQuiz(){
   currentQuestion=0;
 
   selectedFamilies=[];
+  selectedAnswers=[];
 
   resetScores();
 
@@ -967,7 +1103,7 @@ function renderQuestion(){
       <span class="answer-text">${answer[1]}</span>
     `;
 
-    button.onclick=()=>selectAnswer(answer[2]);
+    button.onclick=()=>selectAnswer(answer[1], answer[2]);
 
     answers.appendChild(button);
 
@@ -976,23 +1112,19 @@ function renderQuestion(){
 }
 
 
-function selectAnswer(family){
+function selectAnswer(answerText, family){
 
-  selectedFamilies[currentQuestion]=family;
+  selectedAnswers[currentQuestion] = answerText;
+  selectedFamilies[currentQuestion] = family;
 
   scores[family]++;
 
   currentQuestion++;
 
-
   if(currentQuestion < questions.length){
-
     renderQuestion();
-
   }else{
-
     showResult();
-
   }
 
 }
@@ -1018,24 +1150,52 @@ function goBack(){
 
 
   selectedFamilies[currentQuestion]=null;
-
+  selectedAnswers[currentQuestion]=null;
 
   renderQuestion();
 
 }
 
 
+
+async function saveQuizResult(winner){
+
+  const quizData = {
+    full_name: clientName,
+    email: clientEmail,
+    result_family: winner,
+    q1_answer: selectedAnswers[0] || null,
+    q2_answer: selectedAnswers[1] || null,
+    q3_answer: selectedAnswers[2] || null,
+    q4_answer: selectedAnswers[3] || null,
+    q5_answer: selectedAnswers[4] || null,
+    q6_answer: selectedAnswers[5] || null,
+    q7_answer: selectedAnswers[6] || null,
+    q8_answer: selectedAnswers[7] || null,
+    q9_answer: selectedAnswers[8] || null,
+    q10_answer: selectedAnswers[9] || null
+  };
+
+  const { error } = await supabaseClient
+    .from("perfume_quiz_results")
+    .insert([quizData]);
+
+  if(error){
+    console.error("Supabase insert error:", error);
+    return {
+      success:false,
+      message:error.message
+    };
+  }
+
+  return {
+    success:true
+  };
+}
+
+
 /* FIXED RESULT LOGIC */
-function showResult(){
-
-  document.getElementById("quizScreen").style.display="none";
-
-  document.getElementById("resultScreen").style.display="flex";
-
-  document.getElementById("progressBar").style.width="100%";
-
-  document.getElementById("counter").textContent="Your Scent Family";
-
+async function showResult(){
 
   const maxScore =
     Math.max(...Object.values(scores));
@@ -1090,6 +1250,25 @@ function showResult(){
 
   const detail =
     resultDetails[winner];
+
+  // Store the completed quiz in Supabase before revealing the result.
+  const saveResult = await saveQuizResult(winner);
+
+  document.getElementById("quizScreen").style.display="none";
+  document.getElementById("resultScreen").style.display="flex";
+  document.getElementById("progressBar").style.width="100%";
+  document.getElementById("counter").textContent="Your Scent Family";
+
+  document.getElementById("resultGreeting").textContent =
+    clientName + ", Your Fragrance Family Is";
+
+  const saveStatus = document.getElementById("saveStatus");
+
+  if(saveResult.success){
+    saveStatus.textContent = "Your fragrance profile has been saved successfully.";
+  }else{
+    saveStatus.textContent = "Your result is ready, but we could not save it. Please let our team know.";
+  }
 
 
   document.getElementById("resultName").textContent =
@@ -1160,6 +1339,18 @@ function restartQuiz(){
   resetScores();
 
   selectedFamilies=[];
+  selectedAnswers=[];
+
+  clientName="";
+  clientEmail="";
+
+  const nameInput = document.getElementById("clientName");
+  const emailInput = document.getElementById("clientEmail");
+  const errorBox = document.getElementById("formError");
+
+  if(nameInput) nameInput.value="";
+  if(emailInput) emailInput.value="";
+  if(errorBox) errorBox.textContent="";
 
 }
 
