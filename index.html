@@ -397,37 +397,7 @@ h1,h2{
   margin-bottom:24px;
 }
 
-.reveal-mark{
-  width:96px;
-  height:96px;
-  margin:0 auto 26px;
-  border:1px solid rgba(196,154,90,.55);
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  position:relative;
-}
 
-.reveal-mark:before{
-  content:"";
-  position:absolute;
-  inset:8px;
-  border:1px solid rgba(196,154,90,.20);
-  border-radius:50%;
-}
-
-.result-icon{
-  width:58px;
-  height:58px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  color:var(--gold-dark);
-  background:rgba(255,255,255,.72);
-  font-family:Georgia,serif;
-  font-size:28px;
-  box-shadow:0 12px 30px rgba(83,58,24,.08);
-}
 
 .result-family{
   color:#9c8d79;
@@ -666,13 +636,11 @@ h1,h2{
         </div>
 
         <h1>
-          Discover Your<br>
+          Discover Your
           Scent Family
         </h1>
 
-        <p>
-          Enter your details, answer 10 quick questions, and discover the fragrance family that best matches you.
-        </p>
+       
 
         <div class="guest-form">
 
@@ -755,9 +723,7 @@ h1,h2{
 
        
 
-        <div class="reveal-mark">
-          <div class="result-icon" id="resultIcon">✦</div>
-        </div>
+        
 
         <div class="result-family" id="resultGreeting">Your Fragrance Family Is</div>
 
@@ -773,6 +739,7 @@ h1,h2{
 
         <div class="result-hint" id="resultHint"></div>
         <div class="save-status" id="saveStatus"></div>
+        <br>
 
         <button class="restart-btn" onclick="restartQuiz()">
           DISCOVER ANOTHER SCENT
@@ -945,37 +912,36 @@ const resultDetails = {
 
   "Woody":{
     tagline:"Deep · Refined · Unforgettable",
-    traits:["Woody","Smoky","Rich","Mysterious"],
+   
     
   },
 
   "Fresh":{
     tagline:"Clean · Bright · Effortless",
-    traits:["Crisp","Airy","Uplifting","Modern"],
+    
    
   },
 
   "Floral":{
     tagline:"Soft · Intimate · Sensual",
-    traits:["Velvety","Clean","Comforting","Skin-like"],
-  
+   
   },
 
   "Amber":{
     tagline:"Warm · Rich · Magnetic",
-    traits:["Golden","Warm","Resinous","Elegant"],
+   
 
   },
 
   "Sweet":{
     tagline:"Playful · Creamy · Irresistible",
-    traits:["Gourmand","Creamy","Cozy","Addictive"],
+ 
   
   },
 
   "Citrus":{
     tagline:"Vibrant · Sparkling · Bold",
-    traits:["Zesty","Spiced","Energetic","Bright"],
+ 
   
   }
 
@@ -1283,8 +1249,6 @@ async function showResult(){
     detail.tagline;
 
 
-  document.getElementById("resultIcon").textContent =
-    detail.icon;
 
 
   document.getElementById("resultHint").textContent =
